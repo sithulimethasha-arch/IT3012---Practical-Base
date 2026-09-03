@@ -1,4 +1,4 @@
-﻿# visual_grid_game.py
+# visual_grid_game.py
 import random
 import tkinter as tk
 
@@ -6,12 +6,10 @@ import tkinter as tk
 class VisualGridHuntGame:
     """A flexible Pacman-style grid environment with support for configurable opponents and larger scales."""
 
-    def __init__(self, width=10, height=10, num_food=10, num_opponents=2, custom_walls=None, num_traps=3):
+    def __init__(self, width=10, height=10, num_food=10, num_opponents=2, custom_walls=None):
         self.width = width
         self.height = height
         self.agent_pos = [0, 0]  # Starting position (x, y)
-
-
 
         if custom_walls is not None:
             self.walls = set(custom_walls)
@@ -38,33 +36,18 @@ class VisualGridHuntGame:
                 self.opponents.append(op_pos)
 
         self.score = 0
-        self.toxic_traps = set()
-        self._populate_toxic_traps(num_traps)
         self.steps = 0
         self.collision = False
-
-    def _populate_toxic_traps(self, num_traps):
-        while len(self.toxic_traps) < num_traps:
-            tx = random.randint(0, self.width - 1)
-            ty = random.randint(0, self.height - 1)
-            trap_pos = (tx, ty)
-
-            if trap_pos != (0, 0) and trap_pos not in self.walls and trap_pos not in self.food_positions:
-                self.toxic_traps.add(trap_pos)
-
 
     def get_percept(self) -> dict:
         return {
             'agent_pos': list(self.agent_pos),
             'opponent_positions': [list(op) for op in self.opponents],
             'smells_food': tuple(self.agent_pos) in self.food_positions,
-            'smells_toxin': tuple(self.agent_pos) in self.toxic_traps,
             'hit_wall': tuple(self.agent_pos) in self.walls,
             'collision': self.collision,
             'score': self.score,
-            'remaining_food': len(self.food_positions),
-            'hit_trap': tuple(self.agent_pos) in self.toxic_traps
-
+            'remaining_food': len(self.food_positions)
         }
 
     def execute_action(self, action: str):
@@ -79,7 +62,6 @@ class VisualGridHuntGame:
             new_pos[0] = max(0, new_pos[0] - 1)
         elif action == 'Right':
             new_pos[0] = min(self.width - 1, new_pos[0] + 1)
-
 
         if tuple(new_pos) in self.walls:
             self.score -= 5
@@ -106,9 +88,6 @@ class VisualGridHuntGame:
                 self.score -= 50
                 self.collision = True
 
-            if tuple_pos in self.toxic_traps:
-                self.score -= 15
-
     def is_done(self) -> bool:
         return len(self.food_positions) == 0 or self.steps >= 60 or self.collision
 
@@ -116,7 +95,7 @@ class VisualGridHuntGame:
 class GridGameGUI:
     """Tkinter wrapper that dynamically scales cell sizes to keep larger grids on screen."""
 
-    def __init__(self, root, width=10, height=10, num_food=12, num_opponents=2, walls=None, num_traps=3):
+    def __init__(self, root, width=10, height=10, num_food=12, num_opponents=2, walls=None):
         self.root = root
         self.root.title("IT3012 - Scalable Multi-Agent Grid Hunt")
 
@@ -166,22 +145,6 @@ class GridGameGUI:
             y1 = (self.env.height - 1 - fy) * self.cell_size + offset
             self.canvas.create_oval(x1, y1, x1 + self.cell_size * 0.5, y1 + self.cell_size * 0.5, fill="#f59e0b",
                                     outline="#d97706")
-        for tx, ty in self.env.toxic_traps:
-            center_x = tx * self.cell_size + self.cell_size / 2
-            center_y = (self.env.height - 1 - ty) * self.cell_size + self.cell_size / 2
-            size = self.cell_size * 0.3
-
-            triangle_points = [
-                center_x, center_y - size,  # Top point
-                          center_x - size, center_y + size,  # Bottom-left
-                          center_x + size, center_y + size  # Bottom-right
-            ]
-
-            self.canvas.create_polygon(triangle_points, fill="#7c3aed", outline="#6d28d9")
-
-            if self.cell_size >= 40:
-                self.canvas.create_text(center_x, center_y, text="T", fill="white",
-                                        font=("Arial", 8, "bold"))
 
         for ox, oy in self.env.opponents:
             offset = self.cell_size * 0.2
@@ -219,5 +182,5 @@ class GridGameGUI:
 if __name__ == "__main__":
     root = tk.Tk()
     # Try a larger grid size like 12x12 with 15 food and 3 opponents!
-    app = GridGameGUI(root, width=12, height=12, num_food=15, num_opponents=0,num_traps=4)
+    app = GridGameGUI(root, width=12, height=12, num_food=15, num_opponents=0)
     root.mainloop()
