@@ -1,4 +1,4 @@
-# agent.py
+﻿# agent.py
 class GreedyGridAgent:
     """A simple agent that tries to move around systematically to clear the grid."""
 

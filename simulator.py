@@ -1,4 +1,4 @@
-# simulator.py
+﻿# simulator.py
 from grid_game import GridHuntGame
 from agent import GreedyGridAgent
 
